@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Des chiffres et des lettres – Commerce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;800&family=Bungee&family=Orbitron:wght@700;900&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: plateau de jeu télévisé, festif mais lisible en classe
+   IDEA: le décor du jeu — plaques jaunes, horloge ronde, pupitres des candidats
+   PICTURE: la rangée de plaques et l'horloge occupent le centre du plateau
+   COLOUR and TYPE: bleu studio profond, plaques or, rouge pupitre ; Archivo Black pour les plaques
+   LAYOUT: bandeau des scores, plateau central, pupitres de réponse dessous ; tout s'empile sous 600px */
+:root{color-scheme:light dark;--bg:light-dark(#0e2c78,#07173f);--bg2:light-dark(#163a96,#0d2259);--panel:light-dark(#ffffff,#10224d);--pink:light-dark(#1a2240,#e8ecff);--ink:#fff;--gold:#ffc928;--gold2:#e5a800;--red:#e6334a;--green:#22b573;--muted:light-dark(#5a6488,#a9b4d8)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{background:#06123a}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:conic-gradient(from 200deg at 15% -5%,transparent 0 8deg,#ffffff12 8deg 14deg,transparent 14deg 30deg,#ffffff0c 30deg 34deg,transparent 34deg),conic-gradient(from 130deg at 85% -5%,transparent 0 6deg,#ffffff12 6deg 12deg,transparent 12deg 26deg,#ffffff0c 26deg 31deg,transparent 31deg);z-index:0}
+.wrap{position:relative;z-index:1}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse 120% 900px at 50% -10%,#3a6be0 0,var(--bg) 55%,#06123a 100%) no-repeat #06123a;color:var(--ink);font:16px/1.5 Archivo,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Archivo Black",Archivo,sans-serif;font-weight:400;line-height:1.05;margin:0;text-wrap:balance}
+button,input,select{font:inherit}
+button{cursor:pointer;min-height:44px;border-radius:12px;border:0;padding:10px 18px;font-weight:800}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{background:var(--gold);color:#1a1a1a;box-shadow:0 4px 0 var(--gold2)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--gold2)}
+.btn.sec{background:#fff;color:#0e2c78;box-shadow:0 4px 0 #b9c4e6}
+.btn.red{background:var(--red);color:#fff;box-shadow:0 4px 0 #a3172b}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.wrap{max-width:1100px;margin:0 auto;padding:16px max(4vw,14px) 40px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 14px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo h1{font-size:clamp(22px,3.4vw,34px)}
+.logo h1 span{color:var(--gold)}
+.badge{background:var(--red);border-radius:999px;padding:4px 12px;font-weight:800;font-size:14px;white-space:nowrap}
+.scores{display:flex;gap:10px;flex-wrap:wrap}
+.pup{background:linear-gradient(#ff5468,var(--red));border-radius:14px;padding:6px 16px;text-align:center;min-width:120px;box-shadow:inset 0 -4px 0 #0003}
+.pup b{display:block;font:28px/1 "Archivo Black",sans-serif}
+.pup small{font-size:13px;font-weight:600;white-space:nowrap}
+.stage{background:linear-gradient(var(--bg2),#0b2464);border-radius:24px;padding:clamp(16px,3vw,32px);box-shadow:0 20px 50px #0006,inset 0 1px 0 #ffffff30;position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.top h2{font-size:clamp(24px,3.6vw,40px)}
+.top p{margin:4px 0 0;color:#c9d4ff}
+.clock{width:110px;height:110px;flex:none;position:relative}
+.clock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.clock b{position:absolute;inset:0;display:grid;place-items:center;font:34px "Archivo Black",sans-serif}
+.tiles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:clamp(4px,1vw,12px);margin:8px 0 22px}
+.tiles.num{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tile{aspect-ratio:1/1.1;border-radius:10px;background:linear-gradient(#ffe27a,var(--gold) 45%,var(--gold2));color:#14205a;display:grid;place-items:center;font:clamp(22px,5vw,52px) "Archivo Black",sans-serif;box-shadow:0 6px 0 #9b7300,0 10px 18px #0005;border:0;padding:0;min-height:0}
+.tile.empty{background:#ffffff14;box-shadow:inset 0 2px 8px #0005}
+.tile.pop{animation:pop .35s ease-out}
+.tiles.num .tile{font-size:clamp(20px,4.4vw,44px)}
+.tile.used{opacity:.25;cursor:default}
+.tile.sel{outline:4px solid #fff;transform:translateY(-4px)}
+@keyframes pop{0%{transform:scale(.3) rotate(-12deg);opacity:0}70%{transform:scale(1.08)}100%{transform:none}}
+.target{display:inline-grid;place-items:center;background:#06123a;border:4px solid var(--gold);border-radius:16px;padding:6px 26px;font:clamp(40px,8vw,72px)/1.1 "Archivo Black",sans-serif;color:var(--gold);letter-spacing:.04em;text-shadow:0 0 18px #ffc92880}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.center{justify-content:center}
+.card{background:var(--panel);color:var(--pink);border-radius:18px;padding:18px;margin-top:18px}
+.card h3{font-size:20px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:15px}
+.field input{min-height:48px;border-radius:10px;border:2px solid #c9d1ea;padding:8px 12px;font-size:20px;font-weight:800;text-transform:uppercase;background:light-dark(#fff,#0a1838);color:var(--pink)}
+.msg{font-weight:700;font-size:15px;min-height:22px}
+.ok{color:var(--green)}.ko{color:var(--red)}
+.ops{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px}
+.ops button{width:60px;font:26px "Archivo Black",sans-serif;background:#fff;color:#0e2c78;box-shadow:0 4px 0 #b9c4e6}
+.ops button.sel{background:var(--gold)}
+.hist{font:600 17px/1.7 Archivo,sans-serif;text-align:center;color:#dfe6ff;min-height:28px}
+.reveal{border-left:6px solid var(--gold);background:light-dark(#fff8df,#2a2410)}
+.def{font-size:16px;margin:6px 0 0}
+.bloc{display:inline-block;background:#0e2c78;color:#fff;border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;margin-top:6px}
+.words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.words span{background:light-dark(#eef2ff,#1b2f66);border-radius:8px;padding:4px 10px;font-weight:800;letter-spacing:.05em}
+/* setup */
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.choice{text-align:left;background:light-dark(#f2f5ff,#0a1838);color:var(--pink);border:3px solid transparent;border-radius:16px;padding:16px;font-weight:400;box-shadow:none}
+.choice b{display:block;font:22px "Archivo Black",sans-serif;margin-bottom:4px}
+.choice.on{border-color:var(--gold);background:light-dark(#fff6d6,#2a2410)}
+.choice small{color:var(--muted);font-size:14px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{background:light-dark(#eef2ff,#1b2f66);color:var(--pink);font-weight:700}
+.seg button.on{background:var(--gold);color:#1a1a1a}
+.lex{columns:2 260px;column-gap:24px;margin:0;padding:0;list-style:none}
+.lex li{break-inside:avoid;padding:8px 0;border-bottom:1px solid #8892b333}
+.hide{display:none!important}
+.credit{margin:-4px 0 14px;color:#c9d4ff;font-size:15px}.credit b{color:#fff}
+footer{text-align:center;color:#c9d4ff;font-size:14px;margin-top:22px}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.prog{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.prog i{font-style:normal;font-size:13px;font-weight:700;padding:3px 9px;border-radius:999px;background:#ffffff18;color:#c9d4ff}
+.prog i.now{background:var(--gold);color:#1a1a1a}.prog i.done{background:#ffffff35;color:#fff}
+.buzzers{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:16px;margin-top:18px}
+.buzz{aspect-ratio:2/1;border-radius:24px;font:clamp(20px,3vw,30px) "Archivo Black",sans-serif;color:#fff;background:radial-gradient(circle at 50% 35%,#ff7a8a,var(--red) 60%,#8f1022);box-shadow:0 8px 0 #6d0c1a,0 14px 30px #0007}
+.buzz.b2{background:radial-gradient(circle at 50% 35%,#7fb0ff,#2f6bff 60%,#173b9c);box-shadow:0 8px 0 #10296d,0 14px 30px #0007}
+.buzz small{display:block;font:600 14px Archivo,sans-serif;opacity:.85}
+.buzz.b3{background:radial-gradient(circle at 50% 35%,#6ee7a8,#1fae63 60%,#0d6b3a);box-shadow:0 8px 0 #0a4f2b,0 14px 30px #0007}
+.buzz.out{filter:grayscale(1);opacity:.3}
+.podium{display:grid;gap:10px;margin-top:6px}.podium div{display:flex;justify-content:space-between;align-items:center;gap:12px;background:light-dark(#eef2ff,#1b2f66);border-radius:12px;padding:12px 16px;font-weight:800;font-size:18px}.podium div:first-child{background:var(--gold);color:#1a1a1a;font-size:22px}
+.buzz:disabled{filter:grayscale(.7);opacity:.5}
+.buzz.won{outline:5px solid var(--gold);animation:pop .3s}
+.qpro{font-size:clamp(18px,2.4vw,22px);line-height:1.45;background:#06123a;border-radius:14px;padding:18px;border:2px solid #ffffff30}
+@media(max-width:600px){.buzzers{gap:8px}.buzz{font-size:17px}.tiles{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px}.tiles.num{grid-template-columns:repeat(3,minmax(0,1fr))!important}.buzz{aspect-ratio:1.4/1}.clock{width:84px;height:84px}.clock b{font-size:26px}.tiles{gap:4px}.tile{border-radius:7px;box-shadow:0 4px 0 #9b7300}.pup{min-width:0;flex:1}.ops button{width:54px}}
+@media(prefers-reduced-motion:reduce){.tile.pop{animation:none}}
+
+/* ===== HABILLAGE PLATEAU TÉLÉ ===== */
+body{background:radial-gradient(ellipse 90% 60% at 50% -5%,#4f7dff 0,#1638b0 30%,#0b1d6b 60%,#140b45 100%) no-repeat #0b0730}
+body::before,body::after{content:'';position:fixed;top:-10vh;width:70vw;height:130vh;pointer-events:none;z-index:0;filter:blur(2px);mix-blend-mode:screen}
+body::before{left:-20vw;background:conic-gradient(from 150deg at 30% 0,transparent 0 6deg,#9fc4ff30 10deg 16deg,transparent 22deg 30deg,#ffe3a020 34deg 38deg,transparent 44deg);transform-origin:30% 0;animation:sway 9s ease-in-out infinite alternate}
+body::after{right:-20vw;background:conic-gradient(from 160deg at 70% 0,transparent 0 6deg,#ffd6f030 10deg 15deg,transparent 21deg 28deg,#9fc4ff22 32deg 37deg,transparent 43deg);transform-origin:70% 0;animation:sway 11s ease-in-out infinite alternate-reverse}
+@keyframes sway{from{transform:rotate(-9deg)}to{transform:rotate(9deg)}}
+.floor{position:fixed;left:0;right:0;bottom:0;height:28vh;pointer-events:none;z-index:0;background:linear-gradient(transparent,#00000080),repeating-linear-gradient(90deg,#6f8cff14 0 1px,transparent 1px 80px);transform:perspective(300px) rotateX(45deg);transform-origin:bottom}
+.logo h1{font-family:Bungee,"Archivo Black",sans-serif;font-size:clamp(24px,4vw,44px);letter-spacing:.01em;background:linear-gradient(#fffbe6 0,#ffe066 35%,#ffb300 60%,#ff8a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #7a3d00) drop-shadow(0 0 18px #ffb30066)}
+.logo h1 span{display:inline-grid;place-items:center;width:1.2em;height:1.2em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff7a8a,#d0102a);-webkit-background-clip:border-box;color:#fff;font-size:.75em;vertical-align:.12em;box-shadow:0 0 0 3px #ffd34d,0 0 18px #ff335588}
+.badge{background:linear-gradient(#ff5468,#c4102a);box-shadow:0 0 0 2px #ffffff40,0 4px 12px #0006}
+.stage{background:linear-gradient(160deg,#1d47c4 0,#132f8f 45%,#0d1f63 100%);border:1px solid #8fb0ff55;box-shadow:0 0 0 6px #ffffff0a,0 0 60px #3b6bff55,0 30px 60px #0008,inset 0 1px 0 #ffffff50;overflow:hidden}
+.stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0,#ffffff1f,transparent 70%);pointer-events:none}
+.stage>*{position:relative}
+.top h2{font-family:Bungee,"Archivo Black",sans-serif;font-weight:400;text-shadow:0 3px 0 #0a1a5c,0 0 22px #6f9bff88}
+/* plaques */
+.tile{perspective:600px;background:linear-gradient(180deg,#fff4b8 0,#ffd84a 22%,#ffc21a 55%,#e69a00 100%);color:#10205e;box-shadow:inset 0 2px 0 #fffbe0,inset 0 -5px 0 #c27a00,0 6px 0 #7a4b00,0 0 22px #ffc92855,0 14px 22px #0006;text-shadow:0 1px 0 #ffffff90;position:relative;overflow:hidden}
+.tile::after{content:'';position:absolute;inset:0 0 55% 0;background:linear-gradient(#ffffff70,#ffffff00);border-radius:inherit;pointer-events:none}
+.tile.empty{background:linear-gradient(#0a1650,#0d1f63);box-shadow:inset 0 0 0 2px #5b7dff55,inset 0 4px 14px #000a}
+.tile.empty::after{content:'?';inset:0;display:grid;place-items:center;background:none;color:#5b7dff44;font:inherit;font-size:.7em}
+@keyframes pop{0%{transform:perspective(700px) rotateY(100deg) scale(.85);filter:brightness(2)}55%{transform:perspective(700px) rotateY(-14deg) scale(1.04)}100%{transform:none;filter:none}}
+.tile.pop{animation:pop .5s cubic-bezier(.2,.8,.3,1.2)}
+/* nombre à trouver : cadre à ampoules */
+.target{position:relative;font-family:Orbitron,"Archivo Black",sans-serif;font-weight:900;color:#ff3b4f;background:radial-gradient(#1a0510,#050208);border:0;padding:10px 34px;border-radius:18px;text-shadow:0 0 10px #ff3b4f,0 0 26px #ff3b4fa0;box-shadow:0 0 0 8px #2a1b06,0 0 0 11px #ffc928,0 0 30px #ffc92880}
+.target::before{content:'';position:absolute;inset:-9px;border-radius:24px;border:4px dotted #fff3b0;filter:drop-shadow(0 0 4px #ffe066);animation:bulbs .9s steps(2) infinite}
+@keyframes bulbs{50%{border-color:#ffb300;filter:none}}
+/* horloge à points */
+.clock{width:124px;height:124px;border-radius:50%;background:radial-gradient(#0d1a4a,#050b26);box-shadow:0 0 0 4px #ffffff20,0 0 30px #4f7dff55,inset 0 0 18px #000}
+.clock svg{transform:none}
+.clock b{font-family:Orbitron,sans-serif;font-weight:900;font-size:36px;color:#fff;text-shadow:0 0 12px #9fc4ff}
+.clock.alert b{color:#ff3b4f;text-shadow:0 0 14px #ff3b4f;animation:beat .5s infinite alternate}
+@keyframes beat{to{transform:scale(1.12)}}
+/* pupitres */
+.scores{gap:12px}
+.pup{min-width:130px;padding:0;border-radius:14px 14px 8px 8px;background:linear-gradient(#2b55d8,#142d86);box-shadow:0 0 0 2px #8fb0ff66,0 8px 0 #0a1a5c,0 12px 24px #0008;overflow:hidden}
+.pup small{display:block;background:linear-gradient(#ff5468,#c4102a);padding:4px 10px;font-weight:800;font-size:14px;letter-spacing:.02em}
+.pup b{font-family:Orbitron,sans-serif;font-weight:900;font-size:30px;color:#ffd84a;text-shadow:0 0 10px #ffb300;background:#050b26;margin:8px 10px 10px;border-radius:8px;padding:6px 0;box-shadow:inset 0 2px 8px #000}
+.pup.bump{animation:bump .7s}
+@keyframes bump{30%{transform:translateY(-8px) scale(1.08);box-shadow:0 0 0 3px #ffd84a,0 0 40px #ffd84a,0 8px 0 #0a1a5c}}
+.pup.lead small{background:linear-gradient(#ffe066,#ffb300);color:#3a2500}
+/* boutons */
+.btn{background:linear-gradient(#ffe680,#ffc21a 55%,#f0a400);box-shadow:inset 0 2px 0 #fff8d0,0 5px 0 #a86f00,0 10px 18px #0005;text-transform:none;letter-spacing:.01em}
+.btn.red{background:linear-gradient(#ff7183,#e6334a 55%,#b8142b);box-shadow:inset 0 2px 0 #ffb3bd,0 5px 0 #7d0c1c,0 10px 18px #0005}
+.btn.sec{background:linear-gradient(#fff,#dfe6ff);box-shadow:inset 0 2px 0 #fff,0 5px 0 #8a99c9,0 10px 18px #0004}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+#startBtn{font-family:Bungee,sans-serif;font-weight:400;font-size:24px!important;animation:glow 1.6s ease-in-out infinite alternate}
+@keyframes glow{to{box-shadow:inset 0 2px 0 #fff8d0,0 5px 0 #a86f00,0 0 34px #ffd84a}}
+.card{box-shadow:0 10px 30px #0004}
+.qpro{background:linear-gradient(#081446,#050b2e);border:2px solid #5b7dff66;box-shadow:inset 0 0 30px #2b55d855}
+/* vitrine du générique */
+.marquee{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(4px,1vw,10px);margin:4px 0 18px}
+.marquee .tile{width:clamp(28px,5.4vw,58px);font-size:clamp(16px,3.4vw,34px)}
+#calc .tile{font-size:clamp(16px,2.4vw,26px)}
+.marquee{flex-wrap:nowrap}@media(max-width:600px){.marquee{flex-wrap:wrap}}
+.marquee .tile.num{background:linear-gradient(180deg,#d9e6ff,#9fb8ff 50%,#6f8fe8);box-shadow:inset 0 2px 0 #fff,inset 0 -5px 0 #4d69c7,0 6px 0 #2b3f86,0 14px 22px #0006}
+.marquee .tile{animation-fill-mode:backwards;aspect-ratio:1/1.15}.marquee .tile.num{font-size:clamp(13px,2.5vw,24px)}
+.marquee .gap{width:clamp(10px,3vw,30px)}
+/* annonce de manche */
+#intro{position:fixed;inset:0;z-index:50;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle,#1d47c4ee,#0b0730f5);opacity:0;transition:opacity .25s}
+#intro.on{opacity:1}
+#intro div{text-align:center;transform:scale(.6);transition:transform .45s cubic-bezier(.2,.9,.3,1.4)}
+#intro.on div{transform:none}
+#intro small{display:block;font:800 clamp(16px,2.4vw,22px) Archivo,sans-serif;color:#ffd84a;letter-spacing:.06em;margin-bottom:10px}
+#intro b{display:block;font:clamp(34px,7vw,76px)/1.05 Bungee,sans-serif;background:linear-gradient(#fffbe6,#ffd84a 45%,#ff9500);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #7a3d00) drop-shadow(0 0 30px #ffb30088)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60;width:100%;height:100%}
+@media(max-width:600px){.scores{width:100%;gap:8px}.pup{min-width:0;flex:1}.pup b{font-size:22px;margin:6px}.pup small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media(prefers-reduced-motion:reduce){body::before,body::after,.target::before,#startBtn,.clock.alert b{animation:none}}
+
+/* Police demandée : Comic Sans MS partout (Comic Neue en secours si l'ordinateur ne l'a pas) */
+body,h1,h2,h3,button,input,select,.logo h1,.top h2,.tile,.target,.clock b,.pup b,.pup small,#intro b,#intro small,#startBtn,.buzz,.buzz small,.ops button,.choice b,.hist,.qpro{font-family:"Comic Sans MS","Comic Sans","Comic Neue",cursive!important}
+.tile,.target,.clock b,.pup b,#intro b,.logo h1,.top h2,.choice b,.buzz{font-weight:700}
+</style>
+</head>
+<body>
+<div class="floor"></div><div id="intro"><div><small id="introS"></small><b id="introB"></b></div></div><canvas id="confetti"></canvas>
+<div class="wrap">
+<header>
+  <div class="logo"><h1>Des chiffres <span>&amp;</span> des lettres</h1><span class="badge" id="lvlBadge">Commerce</span></div>
+  <div class="scores" id="scores"></div>
+</header>
+
+<p class="credit">Jeu conçu par <b>Marie Frison</b>, professeure d'enseignement professionnel · Lycée Jean Hanzelet</p>
+<!-- ÉCRAN DE CONFIGURATION -->
+<section id="setup" class="stage">
+  <div class="marquee" aria-hidden="true" id="marquee"></div>
+  <div class="top"><div><h2>Préparer la partie</h2><p>Les mots et les calculs viennent des référentiels de chaque diplôme.</p></div></div>
+  <div class="card">
+    <h3>Niveau</h3>
+    <div class="choices" id="lvlChoices">
+      <button class="choice on" data-l="cap"><b>CAP EPC</b><small>Équipier polyvalent du commerce : réception des commandes, mise en rayon, accueil et encaissement.</small></button>
+      <button class="choice" data-l="mcva"><b>Bac Pro MCVA</b><small>Métiers du commerce et de la vente, option A : vente-conseil, suivi des ventes, fidélisation, animation et gestion de l'espace commercial.</small></button>
+    </div>
+  </div>
+  <div class="card"><h3>Difficulté</h3>
+    <div class="choices" id="diffChoices">
+      <button class="choice" data-d="facile"><b>Facile</b><small>Temps long, nombre à trouver jusqu'à 299 et toujours atteignable, indice sur le mot du référentiel.</small></button>
+      <button class="choice on" data-d="moyen"><b>Moyen</b><small>Temps intermédiaire, nombre jusqu'à 599 et toujours atteignable.</small></button>
+      <button class="choice" data-d="difficile"><b>Difficile</b><small>Comme à la télé : 30 s pour les lettres, 45 s pour les chiffres, nombre de 101 à 999 pas toujours atteignable.</small></button>
+    </div>
+  </div>
+  <div class="card grid2">
+    <div><h3>Joueurs</h3>
+      <div class="seg" id="modeSeg"><button data-m="1">1 joueur</button><button data-m="2">2 joueurs</button><button data-m="3" class="on">3 joueurs</button></div>
+      <div class="grid2" style="margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <div class="field"><label for="n1">Joueur 1</label><input id="n1" value="Joueur 1" style="text-transform:none;font-size:17px"></div>
+        <div class="field" id="n2box"><label for="n2">Joueur 2</label><input id="n2" value="Joueur 2" style="text-transform:none;font-size:17px"></div>
+        <div class="field" id="n3box"><label for="n3">Joueur 3</label><input id="n3" value="Joueur 3" style="text-transform:none;font-size:17px"></div>
+      </div>
+    </div>
+    <div><h3>Partie</h3>
+      <div class="seg" id="lenSeg"><button data-n="short">Courte · 4 manches</button><button data-n="long" class="on">Émission complète · 7 manches</button></div>
+      <h3 style="margin-top:16px">Tirage des lettres</h3>
+      <div class="seg" id="drawSeg"><button data-d="pro" class="on">Mot du référentiel caché</button><button data-d="classic">Comme à la télé : je choisis le nombre de voyelles</button></div>
+    </div>
+  </div>
+  <div class="card"><h3>Déroulement</h3>
+    <p style="margin:0" id="rulesTxt"></p>
+  </div>
+  <div class="row center" style="margin-top:20px"><button class="btn" id="startBtn" style="font-size:20px;padding:14px 34px">Lancer la partie</button></div>
+  <p class="note" id="dicoState" style="text-align:center;color:#c9d4ff">Chargement du dictionnaire…</p>
+</section>
+
+<!-- ÉCRAN DE JEU -->
+<section id="game" class="stage hide">
+  <div class="top">
+    <div><h2 id="rTitle">Le mot le plus long</h2><p id="rSub"></p><div class="prog" id="prog"></div></div>
+    <div class="clock" id="clock"><svg viewBox="0 0 100 100" id="clockSvg"></svg><b id="clockTxt">–</b></div>
+  </div>
+  <div id="zone"></div>
+</section>
+
+<!-- FIN -->
+<section id="end" class="stage hide"></section>
+<footer>Des chiffres et des lettres, version Commerce · Marie Frison, professeure d'enseignement professionnel, Lycée Jean Hanzelet</footer>
+</div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const eur=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const fr=(n,d=2)=>n.toLocaleString('fr-FR',{maximumFractionDigits:d});
+
+/* ===== VOCABULAIRE DES RÉFÉRENTIELS (mots de 5 à 9 lettres) ===== */
+const BL={
+ cap:{1:'Bloc 1 · Recevoir et suivre les commandes',2:'Bloc 2 · Mettre en valeur et approvisionner',3:'Bloc 3 · Conseiller et accompagner le client dans son parcours d\'achat'},
+ mcva:{1:'Bloc 1 · Conseiller et vendre',2:'Bloc 2 · Suivre les ventes',3:'Bloc 3 · Fidéliser la clientèle et développer la relation client',4:'Bloc 4A · Animer et gérer l\'espace commercial'}
+};
+const VOC={
+cap:[
+['COLIS',1,'Paquet livré par le transporteur, contenant les marchandises commandées.'],
+['PALETTE',1,'Plateau de manutention sur lequel les colis sont empilés et filmés.'],
+['RECEPTION',1,'Contrôle quantitatif et qualitatif des marchandises livrées, avant signature du bon.'],
+['LIVRAISON',1,'Remise des marchandises par le transporteur, accompagnée du bon de livraison.'],
+['STOCK',1,'Ensemble des marchandises disponibles en réserve et en rayon.'],
+['RESERVE',1,'Zone de stockage située hors de la surface de vente.'],
+['RUPTURE',1,'Absence d\'un produit en rayon ou en stock : une vente perdue.'],
+['COMMANDE',1,'Demande de marchandises passée au fournisseur ou à la centrale.'],
+['CARTON',1,'Emballage de regroupement des produits, à ouvrir au cutter avec précaution.'],
+['CHARIOT',1,'Engin de manutention utilisé pour déplacer les colis vers la surface de vente.'],
+['ETIQUETTE',2,'Support qui informe le client du prix, du prix au kilo ou au litre et de la référence.'],
+['BALISAGE',2,'Signalétique et étiquetage des prix et des promotions dans le rayon.'],
+['RAYON',2,'Partie du magasin regroupant une même famille de produits.'],
+['GONDOLE',2,'Meuble de présentation en libre-service ; sa tête de gondole met en avant une offre.'],
+['FACING',2,'Nombre de produits identiques visibles de face sur le linéaire.'],
+['LINEAIRE',2,'Longueur de présentation des produits sur les étagères du rayon.'],
+['VITRINE',2,'Espace visible de l\'extérieur qui attire le client dans le point de vente.'],
+['PROMOTION',2,'Offre commerciale temporaire : prix réduit, lot, produit en plus…'],
+['REASSORT',2,'Réapprovisionnement du rayon à partir de la réserve.'],
+['ANTIVOL',2,'Dispositif de protection posé sur les produits contre le vol.'],
+['RANGEMENT',2,'Remise en ordre du rayon pour qu\'il reste propre et attractif.'],
+['NETTOYAGE',2,'Entretien du rayon et du mobilier, dans le respect des règles d\'hygiène.'],
+['CAISSE',3,'Poste où l\'on enregistre les achats et encaisse le paiement.'],
+['CLIENT',3,'Personne qui achète ; on l\'accueille, on l\'oriente et on le conseille.'],
+['ACCUEIL',3,'Premier contact avec le client : sourire, regard, formule de politesse.'],
+['MONNAIE',3,'Somme rendue au client lorsqu\'il paie en espèces.'],
+['TICKET',3,'Preuve d\'achat remise au client après l\'encaissement.'],
+['CONSEIL',3,'Aide apportée au client pour choisir le produit adapté à son besoin.'],
+['EMBALLAGE',3,'Paquet cadeau ou protection du produit, proposé comme service au client.'],
+['RETRAIT',3,'Remise au client d\'une commande passée en ligne (click and collect).'],
+['REMISE',3,'Réduction accordée sur le prix de vente.'],
+['FIDELITE',3,'Carte ou programme qui récompense le client qui revient.'],
+['ENCAISSER',3,'Enregistrer les articles et recevoir le paiement du client.'],
+['ECHANGE',3,'Remplacement d\'un article rapporté par le client, selon les conditions du magasin.']
+],
+mcva:[
+['ARGUMENT',1,'Raison donnée au client pour le convaincre : caractéristique, avantage, preuve.'],
+['OBJECTION',1,'Frein exprimé par le client ; le vendeur la reformule puis y répond.'],
+['BESOIN',1,'Ce que le client cherche à satisfaire ; on le découvre par le questionnement.'],
+['AVANTAGE',1,'Ce que la caractéristique du produit apporte concrètement au client.'],
+['PREUVE',1,'Élément qui rend l\'argument crédible : démonstration, label, avis, chiffre.'],
+['QUESTION',1,'Outil de la découverte : questions ouvertes, fermées, alternatives.'],
+['ECOUTE',1,'Attitude active du vendeur : reformuler, relancer, montrer de l\'intérêt.'],
+['OMNICANAL',1,'Stratégie qui relie magasin, site, appli et réseaux sociaux dans un même parcours.'],
+['MARGE',2,'Différence entre le prix de vente HT et le coût d\'achat HT.'],
+['PANIER',2,'Panier moyen : chiffre d\'affaires divisé par le nombre de tickets.'],
+['OBJECTIF',2,'Résultat de vente chiffré à atteindre sur une période.'],
+['FACTURE',2,'Document commercial et comptable qui détaille la vente.'],
+['GARANTIE',2,'Engagement du vendeur en cas de défaut du produit après l\'achat.'],
+['LITIGE',2,'Désaccord avec un client à traiter dans le suivi de la vente.'],
+['LIVRAISON',2,'Étape du suivi de commande jusqu\'à la remise au client.'],
+['CLIENTELE',3,'Ensemble des clients d\'une unité commerciale.'],
+['FIDELISER',3,'Faire revenir le client durablement grâce à la qualité de la relation.'],
+['PROSPECT',3,'Client potentiel qui n\'a pas encore acheté.'],
+['ENQUETE',3,'Enquête de satisfaction : mesurer l\'avis des clients pour progresser.'],
+['CATALOGUE',3,'Support qui présente l\'offre et entretient la relation avec le client.'],
+['CIBLE',3,'Groupe de clients visé par une action commerciale.'],
+['ENSEIGNE',4,'Nom commercial et identité du point de vente.'],
+['DEMARQUE',4,'Perte de valeur du stock : démarque connue (casse) ou inconnue (vol, erreurs).'],
+['GAMME',4,'Ensemble de produits d\'une même catégorie répondant à un même besoin.'],
+['REFERENCE',4,'Produit précis de l\'assortiment, identifié par son code.'],
+['ROTATION',4,'Vitesse à laquelle le stock se renouvelle.'],
+['TRAFIC',4,'Fréquentation du point de vente : nombre de visiteurs.'],
+['ANIMATION',4,'Action ponctuelle qui crée l\'événement en magasin : démonstration, dégustation, jeu.'],
+['IMPLANTER',4,'Disposer les produits dans l\'espace de vente selon un plan d\'implantation.'],
+['PROMOTION',4,'Opération qui stimule les ventes sur une période donnée.'],
+['VALORISER',4,'Mettre le produit en avant pour déclencher l\'achat.'],
+['VITRINE',4,'Premier vecteur de communication du magasin vers les passants.']
+]};
+
+/* ===== DICTIONNAIRE ===== */
+let DICO=null;
+fetch('mots.txt').then(r=>r.ok?r.text():Promise.reject()).then(t=>{DICO=new Set(t.split('\n'));for(const l of ['cap','mcva'])VOC[l].forEach(v=>DICO.add(v[0]));$('#dicoState').textContent='Dictionnaire chargé : '+DICO.size.toLocaleString('fr-FR')+' mots acceptés (pluriels et formes conjuguées compris).'}).catch(()=>{$('#dicoState').textContent='Dictionnaire indisponible : les mots seront validés par le jury.'});
+
+/* ===== ÉTAT ===== */
+const S={lvl:'cap',diff:'moyen',mode:3,len:'long',draw:'pro',names:[],score:[0,0],rounds:[],ri:0,lex:[]};
+const DIFF={facile:{L:60,C:75,D:45,tmin:101,tmax:299,guar:true,hint:true,name:'Facile'},moyen:{L:45,C:60,D:35,tmin:101,tmax:599,guar:true,hint:false,name:'Moyen'},difficile:{L:30,C:45,D:25,tmin:101,tmax:999,guar:false,hint:false,name:'Difficile'}};
+const cf=()=>DIFF[S.diff];
+const SEQ={short:['L','L','C','D'],long:['L','L','C','D','L','L','C']};
+const RN={L:'Le mot le plus long',C:'Le compte est bon',D:'Les duels'};
+
+function rules(){const c=cf();$('#rulesTxt').innerHTML=`Comme dans l'émission : deux séries « 2 tirages de lettres + 1 compte est bon », séparées par une série de duels au buzzer.<br><b>Le mot le plus long</b> (${c.L} s) : 10 lettres. Le mot le plus long rapporte autant de points que de lettres ; en cas d'égalité, tous les ex æquo marquent. Bonus de 3 points pour le mot du référentiel caché dans le tirage${c.hint?' (sa longueur est donnée en indice)':''}.<br><b>Le compte est bon</b> (${c.C} s) : 6 plaques (1 à 10, 25, 50, 75, 100), un nombre entre ${c.tmin} et ${c.tmax}${c.guar?', toujours atteignable':''}. Le compte exact vaut 9 points, le plus proche 6.<br><b>Les duels</b> (${c.D} s par question) : 4 questions au buzzer, calcul commercial et vocabulaire du référentiel. Bonne réponse : +10. ${S.mode===3?'Mauvaise réponse : le joueur est bloqué et les deux autres peuvent buzzer.':'Mauvaise réponse : +10 pour l\'adversaire.'}`}
+function seg(id,key,attr){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));S[key]=attr==='m'?+b.dataset.m:b.dataset[attr];showNames();rules()})}
+function showNames(){$('#n2box').classList.toggle('hide',S.mode<2);$('#n3box').classList.toggle('hide',S.mode<3)}
+$('#lvlChoices').addEventListener('click',e=>{const b=e.target.closest('.choice');if(!b)return;$('#lvlChoices').querySelectorAll('.choice').forEach(x=>x.classList.toggle('on',x===b));S.lvl=b.dataset.l;rules()});
+seg('#modeSeg','mode','m');seg('#lenSeg','len','n');seg('#drawSeg','draw','d');
+$('#diffChoices').addEventListener('click',e=>{const b=e.target.closest('.choice');if(!b)return;$('#diffChoices').querySelectorAll('.choice').forEach(x=>x.classList.toggle('on',x===b));S.diff=b.dataset.d;rules()});
+showNames();rules();
+$('#marquee').innerHTML=[...'COMMERCE'].map((c,k)=>`<div class="tile pop" style="animation-delay:${k*.12}s">${c}</div>`).join('')+'<div class="gap"></div>'+[25,50,75,100].map((n,k)=>`<div class="tile num pop" style="animation-delay:${(k+9)*.12}s">${n}</div>`).join('');
+
+let prevSc=[];function renderScores(){if(!S.names.length){$('#scores').innerHTML='';prevSc=[];return}const mx=Math.max(...S.score);$('#scores').innerHTML=S.names.map((n,i)=>`<div class="pup ${S.score[i]>(prevSc[i]??S.score[i])?'bump':''} ${S.names.length>1&&mx>0&&S.score[i]===mx?'lead':''}"><small>${esc(n)}</small><b>${S.score[i]}</b></div>`).join('');if(S.score.some((v,i)=>v>(prevSc[i]??v)))jingle([784,988,1175],.09);prevSc=[...S.score]}
+function renderProg(){$('#prog').innerHTML=S.rounds.map((r,i)=>`<i class="${i<S.ri?'done':i===S.ri?'now':''}">${i+1}. ${r==='L'?'Lettres':r==='C'?'Chiffres':'Duels'}</i>`).join('')}
+
+$('#startBtn').onclick=()=>{
+  unlockAudio();
+  S.names=[1,2,3].slice(0,S.mode).map(i=>$('#n'+i).value.trim()||'Joueur '+i);
+  S.score=S.names.map(()=>0);S.rounds=SEQ[S.len];S.ri=0;S.lex=[];
+  $('#lvlBadge').textContent=(S.lvl==='cap'?'CAP EPC':'Bac Pro MCVA')+' · '+cf().name;
+  $('#setup').classList.add('hide');$('#end').classList.add('hide');$('#game').classList.remove('hide');
+  renderScores();startRound();
+};
+
+/* ===== HORLOGE & SON ===== */
+let AC=null,timer=null,tLeft=0,tMax=0,onEnd=null;
+function unlockAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+function beep(f=880,d=.12,v=.15){if(!AC)return;try{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='square';g.gain.value=v;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+const DOTS=40;$('#clockSvg').innerHTML=[...Array(DOTS)].map((_,k)=>{const a=k/DOTS*2*Math.PI-Math.PI/2;return `<circle cx="${(50+42*Math.cos(a)).toFixed(2)}" cy="${(50+42*Math.sin(a)).toFixed(2)}" r="3.3"/>`}).join('');
+function drawClock(){$('#clockTxt').textContent=tMax?tLeft:'–';const lit=tMax?Math.ceil(tLeft/tMax*DOTS):DOTS;const al=tMax&&tLeft<=5;$('#clock').classList.toggle('alert',!!al);
+  [...$('#clockSvg').children].forEach((c,k)=>{const on=k<lit;c.setAttribute('fill',on?(al?'#ff3b4f':'#ffd84a'):'#ffffff18');c.style.filter=on?`drop-shadow(0 0 2px ${al?'#ff3b4f':'#ffd84a'})`:'none'})}
+function startClock(sec,cb){stopClock();tMax=sec;tLeft=sec;onEnd=cb;drawClock();timer=setInterval(()=>{tLeft--;drawClock();if(tLeft<=5&&tLeft>0)beep(660,.06,.08);if(tLeft<=0){stopClock();beep(440,.5,.18);onEnd&&onEnd()}},1000)}
+function stopClock(){clearInterval(timer);timer=null}
+function endClockNow(){if(timer){stopClock();tLeft=0;drawClock();onEnd&&onEnd()}}
+
+function jingle(notes,d=.12){if(!AC)return;notes.forEach((f,k)=>setTimeout(()=>beep(f,d*1.4,.09),k*d*1000))}
+function intro(sm,big){$('#introS').textContent=sm;$('#introB').textContent=big;const el=$('#intro');el.classList.add('on');jingle([523,659,784,1047],.11);setTimeout(()=>el.classList.remove('on'),1500)}
+function confetti(n=160){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const c=$('#confetti'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const col=['#ffd84a','#ff3b4f','#4f7dff','#ffffff','#22b573','#ff9500'];const P=[...Array(n)].map(()=>({x:c.width/2+(Math.random()-.5)*200,y:c.height*.35,vx:(Math.random()-.5)*16,vy:-Math.random()*14-4,r:Math.random()*6+4,a:Math.random()*6,va:(Math.random()-.5)*.4,c:pick(col)}));
+  let t=0;const step=()=>{x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});if(++t<150)requestAnimationFrame(step);else x.clearRect(0,0,c.width,c.height)};step()}
+function startRound(){stopClock();tMax=0;drawClock();renderProg();const r=S.rounds[S.ri];$('#rTitle').textContent=RN[r];intro(`Manche ${S.ri+1} sur ${S.rounds.length}`,RN[r]);
+  ({L:roundLetters,C:roundNumbers,D:roundDuel})[r]()}
+function nextBtn(){const last=S.ri>=S.rounds.length-1;return `<div class="row center" style="margin-top:18px"><button class="btn" id="nextBtn">${last?'Voir le résultat final':'Manche suivante'}</button></div>`}
+function bindNext(){$('#nextBtn').onclick=()=>{S.ri++;S.ri>=S.rounds.length?finish():startRound()}}
+function answerFields(kind){return `<div class="card"><h3>${kind}</h3><div class="grid2">${S.names.map((n,i)=>`<div class="field"><label for="a${i}">${esc(n)}</label><input id="a${i}" autocomplete="off" ${kind.includes('compte')||kind.includes('réponse')?'inputmode="decimal"':''}><div class="msg" id="m${i}"></div></div>`).join('')}</div></div>`}
+
+/* ===== LETTRES ===== */
+const VOY='AAAAAAAAAEEEEEEEEEEEEEEEIIIIIIIIOOOOOOUUUUUUY';
+const CON='BBCCCDDDFFGGHHJLLLLLMMMNNNNNNPPPQRRRRRRSSSSSSTTTTTTVVXZ';
+let L={};
+function roundLetters(){
+  L={letters:[],pro:null};
+  const voc=VOC[S.lvl];
+  if(S.draw==='pro'){
+    L.pro=pick(voc.filter(v=>!S.lex.some(x=>x[0]===v[0])))||pick(voc);
+    const base=L.pro[0].split('');let nv=base.filter(c=>'AEIOUY'.includes(c)).length;
+    while(base.length<10){const wantV=nv<3||(nv<4&&Math.random()<.35);const c=pick(wantV?VOY:CON);if(wantV)nv++;base.push(c)}
+    L.target=shuffle(base);
+  }
+  $('#rSub').textContent=S.draw==='pro'?'Un mot du référentiel se cache dans ce tirage…'+(cf().hint?' Indice : il fait '+L.pro[0].length+' lettres.':''):'Combien de voyelles voulez-vous dans le tirage ?';
+  $('#zone').innerHTML=`<div class="tiles" id="tiles">${Array(10).fill('<div class="tile empty"></div>').join('')}</div>
+  <div class="row center" id="ctl">${S.draw==='pro'?'<button class="btn" id="drawBtn">Tirer les lettres</button>':[2,3,4,5,6,7].map(n=>`<button class="btn ${n===4?'':'sec'}" data-v="${n}">${n} voyelles</button>`).join('')}</div>
+  <div id="after" class="hide">${answerFields('Votre mot le plus long')}<div class="row center" style="margin-top:14px"><button class="btn red" id="stopBtn">Fin du temps</button><button class="btn" id="checkBtn" disabled>Vérifier les mots</button></div></div><div id="rev"></div>`;
+  const add=c=>{const i=L.letters.length;L.letters.push(c);const t=$('#tiles').children[i];t.className='tile pop';t.textContent=c;beep(1200,.04,.06);if(L.letters.length===10)lettersReady()};
+  if(S.draw==='pro'){$('#drawBtn').onclick=()=>{$('#drawBtn').disabled=true;L.target.forEach((c,i)=>setTimeout(()=>add(c),i*260))}}
+  else{$('#ctl').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;$('#ctl').querySelectorAll('button').forEach(x=>x.disabled=true);const nv=+b.dataset.v;const t=shuffle([...Array(nv)].map(()=>pick(VOY)).concat([...Array(10-nv)].map(()=>pick(CON))));t.forEach((c,i)=>setTimeout(()=>add(c),i*260))}}
+}
+function lettersReady(){
+  $('#ctl').classList.add('hide');$('#after').classList.remove('hide');$('#a0').focus();
+  startClock(cf().L,()=>{$('#checkBtn').disabled=false;$('#stopBtn').classList.add('hide')});
+  $('#stopBtn').onclick=endClockNow;
+  $('#checkBtn').onclick=checkLetters;
+  S.names.forEach((_,i)=>$('#a'+i).addEventListener('keydown',e=>{if(e.key==='Enter'&&!timer)checkLetters()}));
+}
+const norm=w=>w.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+function fits(w,letters){const p=[...letters];for(const c of w){const k=p.indexOf(c);if(k<0)return false;p.splice(k,1)}return true}
+function checkLetters(){
+  $('#checkBtn').disabled=true;
+  const res=S.names.map((_,i)=>{const w=norm($('#a'+i).value);let ok=false,why='';
+    if(!w)why='Pas de proposition';else if(!fits(w,L.letters))why='Lettres non disponibles dans le tirage';else if(DICO&&!DICO.has(w))why='Mot absent du dictionnaire';else ok=true;
+    return {w,ok,why}});
+  const show=()=>{res.forEach((r,i)=>{const m=$('#m'+i);m.className='msg '+(r.ok?'ok':'ko');m.innerHTML=r.ok?`Valide : ${r.w.length} lettres`:esc(r.why)+(r.w&&fits(r.w,L.letters)&&!r.ok?` <button class="btn sec" style="min-height:32px;padding:2px 10px;font-size:13px" data-f="${i}">Accepter (jury)</button>`:'')})};
+  show();
+  $('#after').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;res[+b.dataset.f].ok=true;show();score()});
+  let given=false;
+  function score(){
+    if(given)S.score=[...S._snap];S._snap=[...S.score];given=true;
+    const best=Math.max(0,...res.filter(r=>r.ok).map(r=>r.w.length));
+    if(best>=8||res.some(r=>r.ok&&L.pro&&r.w===L.pro[0]))confetti();
+    res.forEach((r,i)=>{let pts=0;if(r.ok&&r.w.length===best){pts=best}if(r.ok&&L.pro&&r.w===L.pro[0])pts+=3;S.score[i]+=pts;if(pts)$('#m'+i).innerHTML+=` · <b>+${pts} pts</b>`});
+    renderScores();
+  }
+  score();revealLetters();
+}
+function revealLetters(){
+  let best=[];
+  if(DICO){const bylen={};for(const w of DICO){if(w.length>=5&&fits(w,L.letters))(bylen[w.length]=bylen[w.length]||[]).push(w)}const ks=Object.keys(bylen).map(Number).sort((a,b)=>b-a);for(const k of ks){best=best.concat(bylen[k].slice(0,8).map(w=>w));if(best.length>=8)break}}
+  let pro=L.pro;
+  if(!pro){pro=VOC[S.lvl].filter(v=>fits(v[0],L.letters)).sort((a,b)=>b[0].length-a[0].length)[0]}
+  if(pro&&!S.lex.some(x=>x[0]===pro[0]))S.lex.push(pro);
+  $('#rev').innerHTML=`<div class="card reveal">${pro?`<h3>Mot du référentiel : ${pro[0]}</h3><p class="def">${esc(pro[2])}</p><span class="bloc">${esc(BL[S.lvl][pro[1]])}</span>`:'<h3>Aucun mot du référentiel dans ce tirage</h3>'}
+  ${best.length?`<p style="margin:14px 0 0;font-weight:700">Les mots les plus longs possibles :</p><div class="words">${best.slice(0,10).map(w=>`<span>${w} (${w.length})</span>`).join('')}</div>`:''}</div>${nextBtn()}`;
+  bindNext();
+}
+
+/* ===== CHIFFRES ===== */
+let N={};
+function roundNumbers(){
+  const c=cf();
+  const bag=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,25,50,75,100];
+  N={plates:shuffle(bag).slice(0,6),target:rnd(c.tmin,c.tmax),sol:null};
+  // CAP : on garantit un compte exact atteignable
+  if(cf().guar){for(let k=0;k<400;k++){let a=shuffle(N.plates),hit=null;while(a.length>1&&!hit){const x=a.pop(),y=a.pop(),o=rnd(0,3);let r=o===0?x+y:o===1?Math.abs(x-y):o===2?x*y:(x%y===0?x/y:y%x===0?y/x:x+y);if(r<=0)r=x+y;if(r>=c.tmin&&r<=c.tmax&&r%100!==0)hit=r;a.push(r);a=shuffle(a)}if(hit){N.target=hit;break}}}
+  $('#rSub').textContent='Atteignez le nombre avec les 6 plaques : + − × ÷, chaque plaque une seule fois.';
+  $('#zone').innerHTML=`<div class="row center" style="margin-bottom:18px"><div class="target" id="tgt">???</div></div>
+  <div class="tiles num" id="tiles">${Array(6).fill('<div class="tile empty"></div>').join('')}</div>
+  <div class="row center" id="ctl"><button class="btn" id="drawBtn">Tirer les plaques</button></div>
+  <div id="after" class="hide">
+   <div class="card" style="background:#06123a;color:#fff"><h3>Calculateur : cliquez une plaque, une opération, une plaque</h3>
+    <div class="tiles num" id="calc" style="grid-template-columns:repeat(auto-fill,minmax(64px,1fr));margin:10px 0"></div>
+    <div class="ops" id="ops"><button data-o="+">+</button><button data-o="−">−</button><button data-o="×">×</button><button data-o="÷">÷</button></div>
+    <div class="hist" id="hist"></div>
+    <div class="row center" style="margin-top:8px"><button class="btn sec" id="undoBtn">Annuler</button><button class="btn sec" id="resetBtn">Recommencer</button></div>
+   </div>
+   ${answerFields(S.mode===1?'Votre compte (rempli par le calculateur, modifiable)':'Le compte annoncé par chaque joueur')}
+   <div class="row center" style="margin-top:14px"><button class="btn red" id="stopBtn">Fin du temps</button><button class="btn" id="checkBtn" disabled>Vérifier les comptes</button></div>
+  </div><div id="rev"></div>`;
+  $('#drawBtn').onclick=()=>{$('#drawBtn').disabled=true;
+    N.plates.forEach((p,i)=>setTimeout(()=>{const t=$('#tiles').children[i];t.className='tile pop';t.textContent=p;beep(1200,.04,.06)},i*260));
+    setTimeout(()=>{$('#tgt').textContent=N.target;beep(990,.15,.12);numbersReady()},6*260+400)};
+}
+let calc={};
+function calcInit(){calc={items:N.plates.map((v,i)=>({v,id:i,used:false})),hist:[],sel:null,op:null};calcDraw()}
+function calcDraw(){
+  $('#calc').innerHTML=calc.items.map((t,i)=>`<button class="tile ${t.used?'used':''} ${calc.sel===i?'sel':''}" data-i="${i}" ${t.used?'disabled':''} aria-label="Plaque ${t.v}">${t.v}</button>`).join('');
+  $('#ops').querySelectorAll('button').forEach(b=>b.classList.toggle('sel',b.dataset.o===calc.op));
+  $('#hist').innerHTML=calc.hist.map(h=>h.txt).join('<br>')||'<span style="opacity:.6">Vos opérations s\'afficheront ici</span>';
+  if(S.mode===1){const free=calc.items.filter(t=>!t.used).map(t=>t.v);const b=free.reduce((a,v)=>Math.abs(v-N.target)<Math.abs(a-N.target)?v:a,free[0]);if(calc.hist.length)$('#a0').value=b}
+}
+function numbersReady(){
+  $('#ctl').classList.add('hide');$('#after').classList.remove('hide');calcInit();
+  if(!N.sol)setTimeout(()=>{N.sol=solve(N.plates,N.target)},50);
+  $('#calc').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;const i=+b.dataset.i;
+    if(calc.sel===null||calc.op===null||calc.sel===i){calc.sel=calc.sel===i?null:i;calcDraw();return}
+    const a=calc.items[calc.sel].v,c=calc.items[i].v;let r=null;
+    if(calc.op==='+')r=a+c;else if(calc.op==='×')r=a*c;else if(calc.op==='−')r=a-c;else if(calc.op==='÷')r=c&&a%c===0?a/c:null;
+    if(r===null||r<=0){$('#hist').innerHTML='<span class="ko" style="color:#ff8a99">Opération interdite : résultat entier et positif obligatoire</span>';calc.op=null;calc.sel=null;setTimeout(calcDraw,1300);return}
+    calc.items[calc.sel].used=true;calc.items[i].used=true;calc.items.push({v:r,used:false});
+    calc.hist.push({txt:`${a} ${calc.op} ${c} = <b>${r}</b>`,a:calc.sel,b:i});calc.sel=null;calc.op=null;
+    if(r===N.target){jingle([784,988,1175,1568],.12);confetti(90)}calcDraw()};
+  $('#ops').onclick=e=>{const b=e.target.closest('[data-o]');if(b){calc.op=b.dataset.o;calcDraw()}};
+  $('#undoBtn').onclick=()=>{const h=calc.hist.pop();if(!h)return;calc.items.pop();calc.items[h.a].used=false;calc.items[h.b].used=false;calc.sel=null;calc.op=null;calcDraw()};
+  $('#resetBtn').onclick=calcInit;
+  startClock(cf().C,()=>{$('#checkBtn').disabled=false;$('#stopBtn').classList.add('hide')});
+  $('#stopBtn').onclick=endClockNow;$('#checkBtn').onclick=checkNumbers;
+}
+function solve(nums,target){
+  let best={diff:Infinity,steps:[],v:null};const seen=new Set();
+  const rec=(arr,steps)=>{
+    const key=[...arr].sort((a,b)=>a-b).join(',');if(seen.has(key))return false;seen.add(key);
+    for(const x of arr){const d=Math.abs(x-target);if(d<best.diff){best={diff:d,steps:[...steps],v:x};if(d===0)return true}}
+    if(arr.length<2)return false;
+    for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++){
+      const a=Math.max(arr[i],arr[j]),b=Math.min(arr[i],arr[j]);const rest=arr.filter((_,k)=>k!==i&&k!==j);
+      const cand=[[a+b,'+']];if(a!==b)cand.push([a-b,'−']);if(b>1)cand.push([a*b,'×']);if(b>1&&a%b===0)cand.push([a/b,'÷']);
+      for(const [r,o] of cand){steps.push(`${a} ${o} ${b} = ${r}`);if(rec([...rest,r],steps))return true;steps.pop()}}
+    return false};
+  rec(nums,[]);return best;
+}
+function checkNumbers(){
+  $('#checkBtn').disabled=true;
+  if(!N.sol)N.sol=solve(N.plates,N.target);
+  const vals=S.names.map((_,i)=>{const v=parseInt($('#a'+i).value,10);return isNaN(v)?null:v});
+  const proven=S.names.map((_,i)=>vals[i]!==null&&(S.mode>1||calc.items.some(t=>t.v===vals[i])));
+  const diffs=vals.map((v,i)=>v!==null&&proven[i]?Math.abs(v-N.target):Infinity);
+  const best=Math.min(...diffs);
+  S.names.forEach((_,i)=>{let pts=0;if(diffs[i]!==Infinity&&diffs[i]===best)pts=best===0?9:6;S.score[i]+=pts;const m=$('#m'+i);
+    m.className='msg '+(pts?'ok':'ko');
+    m.innerHTML=vals[i]===null?'Pas de proposition':!proven[i]?'Nombre non obtenu avec le calculateur':(diffs[i]===0?'Le compte est bon !':`À ${diffs[i]} du compte`)+(pts?` · <b>+${pts} pts</b>`:'')});
+  if(best===0)confetti();renderScores();
+  $('#rev').innerHTML=`<div class="card reveal"><h3>${N.sol.diff===0?'Le compte est bon : une solution':'Meilleure solution : '+N.sol.v+' (à '+N.sol.diff+')'}</h3>
+  <div class="words" style="flex-direction:column;align-items:flex-start">${N.sol.steps.map(s=>`<span>${s}</span>`).join('')||'<span>Une plaque suffit !</span>'}</div>
+  ${S.mode>1?'<p class="note">Le joueur le plus proche démontre son calcul au calculateur. Si la démonstration échoue, corrigez son annonce avant de vérifier.</p>':''}</div>${nextBtn()}`;
+  bindNext();
+}
+
+/* ===== CALCUL DU VENDEUR (référentiels) ===== */
+const R2=x=>Math.round(x*100)/100;
+const PRO={
+cap:[
+()=>{const p=rnd(520,4790)/100,p2=R2(Math.round(p*10)/10),b=p2<20?20:50;return{bl:3,t:'Rendre la monnaie',q:`Le ticket de caisse d'un client s'élève à <b>${eur(p2)}</b>. Il paie avec un billet de <b>${b} €</b>. Combien lui rendez-vous ?`,a:R2(b-p2),u:'€',c:`${b} − ${fr(p2)} = <b>${eur(R2(b-p2))}</b>`}},
+()=>{const P=pick([20,30,40,50,60,80,120,150]),r=pick([10,20,25,30,50]);const a=R2(P*(1-r/100));return{bl:2,t:'Afficher un prix remisé',q:`Un article coûte <b>${P} €</b>. Il est en promotion à <b>−${r} %</b>. Quel prix affichez-vous sur l'étiquette ?`,a,u:'€',c:`Remise : ${P} × ${r} / 100 = ${fr(P*r/100)} €. Prix remisé : ${P} − ${fr(P*r/100)} = <b>${eur(a)}</b>`}},
+()=>{const cap=pick([36,48,60,72]),rest=rnd(5,cap-12),col=pick([6,8,12]);const a=Math.ceil((cap-rest)/col);return{bl:2,t:'Préparer un réassort',q:`Le linéaire peut contenir <b>${cap}</b> paquets de biscuits. Il en reste <b>${rest}</b> en rayon. Les cartons de la réserve contiennent <b>${col}</b> paquets. Combien de cartons devez-vous ouvrir pour remplir le rayon ?`,a,u:'cartons',c:`Manquants : ${cap} − ${rest} = ${cap-rest} paquets. ${cap-rest} ÷ ${col} = ${fr((cap-rest)/col)} → on arrondit au-dessus : <b>${a} cartons</b>`}},
+()=>{const q1=rnd(2,5),p1=rnd(99,499)/100,q2=rnd(2,4),p2=rnd(150,899)/100;const a=R2(q1*p1+q2*p2);return{bl:3,t:'Calculer un ticket de caisse',q:`Un client achète <b>${q1}</b> yaourts à <b>${eur(p1)}</b> et <b>${q2}</b> paquets de café à <b>${eur(p2)}</b>. Quel est le montant du ticket ?`,a,u:'€',c:`${q1} × ${fr(p1)} = ${eur(R2(q1*p1))} ; ${q2} × ${fr(p2)} = ${eur(R2(q2*p2))} ; total <b>${eur(a)}</b>`}},
+()=>{const c=rnd(8,15),u=pick([6,12,24]),rec=c*u-rnd(3,u*2);const a=c*u-rec;return{bl:1,t:'Contrôler une livraison',q:`Vous avez commandé <b>${c} cartons de ${u}</b> bouteilles. Au comptage, vous recevez <b>${rec}</b> bouteilles. Combien de bouteilles manque-t-il ? (à noter en réserve sur le bon de livraison)`,a,u:'bouteilles',c:`Commandé : ${c} × ${u} = ${c*u}. Manquant : ${c*u} − ${rec} = <b>${a}</b>`}},
+()=>{const n=pick([4,6,8,10]),pu=rnd(55,320)/100,P=R2(n*pu);const a=R2(P/n);return{bl:2,t:'Prix à l\'unité',q:`Un lot de <b>${n}</b> savons est vendu <b>${eur(P)}</b>. Quel est le prix d'un savon ? (information obligatoire sur l'étiquette)`,a,u:'€',c:`${fr(P)} ÷ ${n} = <b>${eur(a)}</b>`}},
+()=>{const kg=pick([250,400,500,750]),p=rnd(149,599)/100;const a=R2(p*1000/kg);return{bl:2,t:'Prix au kilo',q:`Un paquet de <b>${kg} g</b> de café coûte <b>${eur(p)}</b>. Quel prix au kilo affichez-vous ? (arrondi au centime)`,a,u:'€/kg',c:`${fr(p)} ÷ ${kg} × 1 000 = <b>${eur(a)}</b> le kilo`}}
+],
+mcva:[
+()=>{const pa=rnd(12,60),pv=pa+rnd(5,40);return{bl:2,t:'Marge unitaire',q:`Un article est acheté <b>${pa} € HT</b> et revendu <b>${pv} € HT</b>. Quelle est la marge unitaire ?`,a:pv-pa,u:'€',c:`Marge = PV HT − PA HT = ${pv} − ${pa} = <b>${eur(pv-pa)}</b>`}},
+()=>{const ht=pick([15,25,35,40,45,60,75,90,120,150]);const a=R2(ht*1.2);return{bl:1,t:'Prix TTC',q:`Le prix de vente HT d'un produit est de <b>${ht} €</b>. La TVA est de <b>20 %</b>. Quel est le prix TTC à annoncer au client ?`,a,u:'€',c:`PV TTC = PV HT × 1,20 = ${ht} × 1,2 = <b>${eur(a)}</b>`}},
+()=>{const ttc=pick([24,36,48,60,72,84,96,120,180]);const a=R2(ttc/1.2);return{bl:2,t:'Retrouver le prix HT',q:`Un produit est affiché <b>${ttc} € TTC</b> (TVA 20 %). Quel est son prix de vente HT ?`,a,u:'€',c:`PV HT = PV TTC ÷ 1,20 = ${ttc} ÷ 1,2 = <b>${eur(a)}</b>`}},
+()=>{const pa=pick([10,15,20,25,30,40,50]),k=pick([1.8,2,2.2,2.4,2.5,3]);const ttc=R2(pa*k);return{bl:4,t:'Coefficient multiplicateur',q:`Un produit est acheté <b>${pa} € HT</b> et vendu <b>${eur(ttc)} TTC</b>. Quel est le coefficient multiplicateur ?`,a:k,u:'',c:`Coefficient = PV TTC ÷ PA HT = ${fr(ttc)} ÷ ${pa} = <b>${fr(k)}</b>`}},
+()=>{const pv=pick([40,50,80,100,120,200]),t=pick([20,25,30,35,40]);const pa=pv*(1-t/100);return{bl:4,t:'Taux de marque',q:`Un article est acheté <b>${fr(pa)} € HT</b> et vendu <b>${pv} € HT</b>. Quel est le taux de marque (en %) ?`,a:t,u:'%',c:`Marge = ${pv} − ${fr(pa)} = ${fr(pv-pa)} €. Taux de marque = marge ÷ PV HT × 100 = ${fr(pv-pa)} ÷ ${pv} × 100 = <b>${t} %</b>`}},
+()=>{const pa=pick([20,40,50,60,80,100]),t=pick([20,25,40,50,60,75]);const pv=pa*(1+t/100);return{bl:4,t:'Taux de marge',q:`Un produit est acheté <b>${pa} € HT</b> et vendu <b>${fr(pv)} € HT</b>. Quel est le taux de marge (en %) ?`,a:t,u:'%',c:`Marge = ${fr(pv)} − ${pa} = ${fr(pv-pa)} €. Taux de marge = marge ÷ PA HT × 100 = <b>${t} %</b>`}},
+()=>{const pm=rnd(18,65),n=rnd(80,260);const ca=pm*n;return{bl:2,t:'Panier moyen',q:`Samedi, le magasin a réalisé un chiffre d'affaires de <b>${ca.toLocaleString('fr-FR')} €</b> pour <b>${n}</b> tickets de caisse. Quel est le panier moyen ?`,a:pm,u:'€',c:`Panier moyen = CA ÷ nombre de tickets = ${ca.toLocaleString('fr-FR')} ÷ ${n} = <b>${eur(pm)}</b>`}},
+()=>{const v=pick([200,250,400,500,800]),t=pick([15,20,22.5,25,30,35,40]);const ach=v*t/100;return{bl:2,t:'Taux de transformation',q:`<b>${v}</b> visiteurs sont entrés dans le magasin ; <b>${ach}</b> ont acheté. Quel est le taux de transformation (en %) ?`,a:t,u:'%',c:`Taux de transformation = acheteurs ÷ visiteurs × 100 = ${ach} ÷ ${v} × 100 = <b>${fr(t)} %</b>`}},
+()=>{const o=pick([5000,6000,8000,10000,12000]),r=Math.round(o*pick([.8,.85,.9,1.05,1.1,1.2]));const a=R2(r/o*100);return{bl:2,t:'Taux de réalisation des objectifs',q:`Votre objectif mensuel de CA était de <b>${o.toLocaleString('fr-FR')} €</b>. Vous avez réalisé <b>${r.toLocaleString('fr-FR')} €</b>. Quel est votre taux de réalisation (en %) ?`,a,u:'%',c:`Taux = réalisé ÷ objectif × 100 = ${r.toLocaleString('fr-FR')} ÷ ${o.toLocaleString('fr-FR')} × 100 = <b>${fr(a)} %</b>`}}
+]};
+/* ===== DUELS AU BUZZER ===== */
+let D={};
+function mkVoc(){const voc=VOC[S.lvl];const v=pick(voc.filter(x=>!S.lex.some(y=>y[0]===x[0])))||pick(voc);
+  const def=v[2].split(/(\s+)/).map(t=>norm(t).startsWith(v[0].slice(0,5))?'…':t).join('');
+  return{kind:'voc',t:'Duel de vocabulaire',q:`Quel mot du référentiel, en <b>${v[0].length} lettres</b> et commençant par <b>${v[0][0]}</b>, correspond à cette définition ?<br><i>« ${esc(def)} »</i>`,a:v[0],c:`<b>${v[0]}</b> : ${esc(v[2])}`,bl:v[1],v}}
+function roundDuel(){
+  const c1=pick(PRO[S.lvl])(),c2=pick(PRO[S.lvl].filter(f=>f().t!==c1.t))();
+  D={i:0,qs:[mkVoc(),Object.assign(c1,{kind:'calc'}),mkVoc(),Object.assign(c2,{kind:'calc'})]};
+  while(D.qs[2].a===D.qs[0].a)D.qs[2]=mkVoc();
+  $('#rSub').textContent=S.mode===3?'Au buzzer ! Bonne réponse : +10. Mauvaise réponse : bloqué, les autres peuvent buzzer.':S.mode===2?'Au buzzer ! Bonne réponse : +10. Mauvaise réponse : +10 pour l\'adversaire.':'Répondez avant la fin du temps : 10 points par bonne réponse.';
+  duelQ();
+}
+function duelQ(){
+  const q=D.qs[D.i];D.buzz=null;D.done=false;D.lock=new Set();stopClock();tMax=0;drawClock();
+  const head=q.kind==='voc'?'Duel de vocabulaire':'Duel de calcul · '+q.t;
+  $('#zone').innerHTML=`<div class="qpro"><span class="bloc" style="background:var(--red);margin:0 0 10px">Duel ${D.i+1} / ${D.qs.length} · ${esc(head)}</span><div>${q.q}</div></div>
+  <div class="row center" id="ctl" style="margin-top:16px"><button class="btn" id="goBtn">Top chrono !</button></div>
+  <div id="after" class="hide">${S.mode>1?`<div class="buzzers" style="--n:${S.mode}">${S.names.map((n,i)=>`<button class="buzz ${['','b2','b3'][i]}" data-b="${i}">${esc(n)}<small>touche ${KEYS[S.mode][i].toUpperCase()}</small></button>`).join('')}</div>
+   <div id="judge" class="row center hide" style="margin-top:16px"><button class="btn" id="okBtn">Bonne réponse</button><button class="btn red" id="koBtn">Mauvaise réponse</button></div>`
+  :`<div class="card"><div class="field"><label for="a0">Votre réponse${q.kind==='calc'&&q.u?' (en '+q.u+')':''}</label><input id="a0" autocomplete="off" ${q.kind==='calc'?'inputmode="decimal"':''}><div class="msg" id="m0"></div></div><div class="row" style="margin-top:10px"><button class="btn" id="valBtn">Valider</button></div></div>`}
+  </div><div id="rev"></div>`;
+  $('#goBtn').onclick=()=>{$('#ctl').classList.add('hide');$('#after').classList.remove('hide');
+    startClock(cf().D,duelTimeout);
+    if(S.mode>1){$('#after').onclick=e=>{const b=e.target.closest('[data-b]');if(b)doBuzz(+b.dataset.b)};
+      $('#okBtn').onclick=()=>{confetti(70);S.score[D.buzz]+=10;renderScores();duelReveal(`Bravo ${esc(S.names[D.buzz])} : +10 points !`)};
+      $('#koBtn').onclick=()=>{if(S.mode===2){const o=1-D.buzz;S.score[o]+=10;renderScores();duelReveal(`Raté… +10 points pour ${esc(S.names[o])}.`);return}
+        D.lock.add(D.buzz);D.buzz=null;$('#judge').classList.add('hide');
+        if(D.lock.size>=S.mode||tLeft<=0){duelReveal('Personne n\'a trouvé.');return}
+        document.querySelectorAll('.buzz').forEach(b=>{const i=+b.dataset.b;b.classList.remove('won');b.classList.toggle('out',D.lock.has(i));b.disabled=D.lock.has(i)});
+        startClock(tLeft,duelTimeout);tMax=cf().D;drawClock()}}
+    else{$('#a0').focus();const val=()=>{if(D.done)return;stopClock();const ok=duelOk(q,$('#a0').value);if(ok){S.score[0]+=10;renderScores()}duelReveal(ok?'Bonne réponse : +10 points !':'Réponse inexacte.')};$('#valBtn').onclick=val;$('#a0').addEventListener('keydown',e=>{if(e.key==='Enter')val()})}};
+}
+const KEYS={2:['a','l'],3:['a','g','l']};
+function duelTimeout(){if(!D.done&&D.buzz===null)duelReveal('Temps écoulé : personne ne marque.')}
+function doBuzz(i){if(D.buzz!==null||D.done||!timer||D.lock.has(i))return;D.buzz=i;stopClock();beep(300,.35,.2);
+  document.querySelectorAll('.buzz').forEach(b=>{b.disabled=true;b.classList.toggle('won',+b.dataset.b===i)});
+  $('#judge').classList.remove('hide')}
+document.addEventListener('keydown',e=>{if(S.rounds[S.ri]!=='D'||S.mode<2||e.target.tagName==='INPUT')return;const i=KEYS[S.mode].indexOf(e.key.toLowerCase());if(i>=0)doBuzz(i)});
+function duelOk(q,raw){if(q.kind==='voc')return norm(raw)===q.a;const v=parseFloat(raw.replace(/\s|€|%/g,'').replace(',','.'));return !isNaN(v)&&Math.abs(v-q.a)<=(q.u==='%'?0.06:0.011)}
+function duelReveal(msg){
+  D.done=true;stopClock();const q=D.qs[D.i];
+  if(q.kind==='voc'&&!S.lex.some(x=>x[0]===q.v[0]))S.lex.push(q.v);
+  if($('#judge'))$('#judge').classList.add('hide');
+  document.querySelectorAll('.buzz').forEach(b=>b.disabled=true);
+  const last=D.i>=D.qs.length-1;
+  $('#rev').innerHTML=`<div class="card reveal"><h3>${msg}</h3><p class="def">${q.kind==='voc'?'Réponse : ':'Correction : '}${q.c}</p><span class="bloc">${esc(BL[S.lvl][q.bl])}</span></div>
+  ${last?nextBtn():'<div class="row center" style="margin-top:18px"><button class="btn" id="nqBtn">Duel suivant</button></div>'}`;
+  if(last)bindNext();else $('#nqBtn').onclick=()=>{D.i++;duelQ()};
+}
+
+/* ===== FIN DE PARTIE ===== */
+function finish(){
+  stopClock();setTimeout(()=>{confetti(260);jingle([523,659,784,1047,784,1047,1319],.13)},200);$('#game').classList.add('hide');const e=$('#end');e.classList.remove('hide');
+  let head;
+  if(S.mode===1)head=`<h2>Bravo ${esc(S.names[0])} : ${S.score[0]} points !</h2>`;
+  else{const r=S.names.map((n,i)=>({n,p:S.score[i]})).sort((a,b)=>b.p-a.p);const win=r.filter(x=>x.p===r[0].p);
+    head=(win.length>1?`<h2>Égalité en tête : ${win.map(x=>esc(x.n)).join(' et ')} !</h2>`:`<h2>${esc(r[0].n)} remporte la partie !</h2>`)+`<div class="podium" style="margin-top:14px;color:var(--pink)">${r.map((x,k)=>`<div><span>${k+1}. ${esc(x.n)}</span><span>${x.p} pts</span></div>`).join('')}</div>`}
+  e.innerHTML=`<div class="top"><div>${head}<p>${S.lvl==='cap'?'CAP Équipier polyvalent du commerce':'Bac Pro Métiers du commerce et de la vente, option A'} · niveau ${cf().name} · Lycée Jean Hanzelet</p></div></div>
+  <div class="card"><h3>Le lexique de la partie</h3>${S.lex.length?`<ul class="lex">${S.lex.map(v=>`<li><b>${v[0]}</b> : ${esc(v[2])}<br><span class="bloc">${esc(BL[S.lvl][v[1]])}</span></li>`).join('')}</ul>`:'<p>Aucun mot du référentiel n\'est apparu.</p>'}</div>
+  <div class="row center" style="margin-top:20px"><button class="btn" id="againBtn">Rejouer</button><button class="btn sec" id="setupBtn">Changer de niveau</button></div>`;
+  $('#againBtn').onclick=()=>$('#startBtn').click();
+  $('#setupBtn').onclick=()=>{e.classList.add('hide');$('#setup').classList.remove('hide');S.names=[];renderScores();$('#lvlBadge').textContent='Commerce'};
+}
+}
+</script>
+</body>
+</html>
